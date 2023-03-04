@@ -60,7 +60,7 @@ async def getModel(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt, u
         text=f'Request of: <b>{username}</b>\n\nGeneral Prompts:\n(<b>{prompt}</b>)\n\n<b>Please wait while we process your request.</b>\n',
         parse_mode=ParseMode.HTML
     )
-    await requestApi(update.message, prompt, model, context, username, url)
+    await requestApi(update.message, prompt, model, context, username, url, )
     
 async def upscale(update: Update, downloadUrl, context: ContextTypes.DEFAULT_TYPE, username) -> None:
     url = 'https://stablediffusionapi.com/api/v3/super_resolution'
@@ -116,7 +116,7 @@ async def upscale(update: Update, downloadUrl, context: ContextTypes.DEFAULT_TYP
                         raise Exception(f'Request failed with status code {resp.status}')
 
 
-async def requestApi(update: Update, prompt, model, context: ContextTypes.DEFAULT_TYPE, username: str, link) -> None:
+async def requestApi(update: Update, prompt, model, context: ContextTypes.DEFAULT_TYPE, username: str, link,) -> None:
 
     print('MODEL THAT WILL BE USED: ', model)
     url = 'https://stablediffusionapi.com/api/v3/dreambooth/img2img'
@@ -151,6 +151,10 @@ async def requestApi(update: Update, prompt, model, context: ContextTypes.DEFAUL
                         await context.bot.send_message(
                             chat_id=update.chat.id,
                             text=data['output'],
+                            reply_markup=InlineKeyboardMarkup([[
+                                    InlineKeyboardButton("Variation", callback_data={'prompt': prompt, 'model': model, 'username': username}),
+                                    InlineKeyboardButton("Upscale", callback_data={'url': str(data["output"]), 'username': username}),
+                                ]]),
                         )
                         return
                     if data['status'] == 'processing' and data['messege'] == 'Request processing':
