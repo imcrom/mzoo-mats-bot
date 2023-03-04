@@ -63,6 +63,9 @@ async def getModel(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt, u
     await requestApi(update.message, prompt, model, context, username, url, )
     
 async def upscale(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    inputs = update.message.text.split()[1:]  # Split the message and get all inputs after the /gen command
+    prompt = " ".join(inputs)
+    print(prompt)
     url_regex = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     match = re.search(url_regex, prompt)
     if match:
