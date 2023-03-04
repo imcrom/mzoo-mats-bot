@@ -62,14 +62,27 @@ async def getModel(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt, u
     )
     await requestApi(update.message, prompt, model, context, username, url, )
     
-async def upscale(update: Update, downloadUrl, context: ContextTypes.DEFAULT_TYPE, username) -> None:
+async def upscale(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    url_regex = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+    match = re.search(url_regex, prompt)
+    if match:
+        # Print the URL found in the prompt
+        url = match.group()
+        print(f"URL found in prompt: {url}")
+        prompt = re.sub(url_regex, '', prompt)
+
+        # Do something with the URL, e.g. download the content
+    else:
+        # Do something else if there's no URL
+        print("No URL found in prompt.")
+    
     url = 'https://stablediffusionapi.com/api/v3/super_resolution'
     headers = {
         'Content-Type': 'application/json'
     }
     payload = {
         "key": "YimEHAg0HxDBkYtZp7X8ZEv7u84XWtt66TgVA78BnGWQlLHe6cdoDQREjpV5",
-        "url": downloadUrl,
+        "url": url,
         "scale": 3,
         "webhook": 'null',
         "face_enhance": 'false'
@@ -85,20 +98,20 @@ async def upscale(update: Update, downloadUrl, context: ContextTypes.DEFAULT_TYP
                             await context.bot.send_photo(
                                 chat_id=update.chat.id,
                                 photo=data['output'],
-                                caption=f'Request of: <b>{username}</b>\n\nHere is your upscaled image.',
+                                caption=f'Request of: <b></b>\n\nHere is your upscaled image.',
                                 parse_mode=ParseMode.HTML
                                 
                             )
                         except Exception as e:
                             await context.bot.send_message(
                                 chat_id=update.chat.id,
-                                text=f'Request of: <b>{username}</b>\n\n<b>Sorry, we were unable to upscale your image.</b>\n\n Please try again. {e}',
+                                text=f'Request of: <b></b>\n\n<b>Sorry, we were unable to upscale your image.</b>\n\n Please try again. {e}',
                                 parse_mode=ParseMode.HTML
                             )
                         break
                     if data['status'] == 'processing' and data['messege'] == 'Request processing':
                         print('Requesting again')
-                        await upscale(update, downloadUrl, context, username)
+                        await upscale(update, context, )
                     if data['status'] == 'processing' and data['messege'] == 'Try to fetch request after given estimated time':
                         if 'fetch_result' in data:
                             url = data['fetch_result']
@@ -108,7 +121,7 @@ async def upscale(update: Update, downloadUrl, context: ContextTypes.DEFAULT_TYP
                             await asyncio.sleep(math.ceil(eta))
                         continue
                     if data['status'] == 'error':
-                        await error_update(update, context, username)
+                        await error_update(update, context, )
                         break
                     if data['status'] == 'failed':
                         continue
@@ -151,10 +164,6 @@ async def requestApi(update: Update, prompt, model, context: ContextTypes.DEFAUL
                         await context.bot.send_message(
                             chat_id=update.chat.id,
                             text=data['output'],
-                            reply_markup=InlineKeyboardMarkup([[
-                                    InlineKeyboardButton("Variation", callback_data={'prompt': prompt, 'model': model, 'username': username}),
-                                    InlineKeyboardButton("Upscale", callback_data={'url': str(data["output"]), 'username': username}),
-                                ]]),
                         )
                         return
                     if data['status'] == 'processing' and data['messege'] == 'Request processing':
@@ -264,5 +273,6 @@ app = ApplicationBuilder().token("5851341881:AAFi9Pt2XTdtNlcH-dPyXtWzeHKfEu_u90A
 
 app.add_handler(CommandHandler("start", hello))
 app.add_handler(CommandHandler("opaw", gen))
+app.add_handler(CommandHandler("upscale", upscale))
 app.add_handler(CallbackQueryHandler(getModel))
 app.run_polling()
