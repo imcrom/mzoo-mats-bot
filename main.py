@@ -77,7 +77,7 @@ async def gen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup = InlineKeyboardMarkup(keyboard)
         await context.bot.send_message(
             chat_id=update.message.chat.id,
-            text=f'<b>{update.message.from_user.first_name}</b> \n\n It seems you are not a premium user. Please subscribe to our premium plan to use this feature.\n\n',
+            text=f'<b>{update.message.from_user.first_name}</b> \n\n It seems you are not a premium user. Connect your wallet to use our bot.\n\nHere is your Telegram username: <b>{update.message.from_user.username}</b>\n\n Telegram is case-sensitive so please make sure you enter your username correctly.',
             parse_mode=ParseMode.HTML,
             reply_markup=reply_markup
         )   
